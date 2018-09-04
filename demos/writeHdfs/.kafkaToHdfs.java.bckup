@@ -1,0 +1,87 @@
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+
+import java.util.Arrays;
+import java.util.Properties;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.*;
+ 
+public class kafkaToHdfs extends Thread {
+    private static String kafkaHost = null;
+    private static String kafkaGroup = null;
+    private static String kafkaTopic = null;
+    private static String hdfsUri = null;
+    private static String hdfsDir = null;
+    private static String hadoopUser = null;
+    private static Boolean isDebug = false;
+ 
+ 
+ 
+    public static void main(String[] args) {
+        if (args.length > 0)
+           if (args[0].equals("-d"))
+              isDebug = true; 
+        System.out.println("开始启动服务...");
+ 
+ 
+        kafkaToHdfs selfObj = new kafkaToHdfs();
+        selfObj.start();
+ 
+        System.out.println("服务启动完毕，监听执行中");
+    }
+ 
+    public void run() {
+      KafkaConsumer<String, String> consumer = null;
+      FileOutputStream out = null;
+      BufferedOutputStream buff = null; 
+      try{ 
+	 out = new FileOutputStream(new File("/root/bigfile"));
+	 buff = new BufferedOutputStream(out); 
+	 Properties props = new Properties();
+	 props.put("bootstrap.servers", "172.17.0.59:9092");
+	 props.put("group.id", "test-consumer-group");
+	 props.put("enable.auto.commit", "true");
+	 props.put("auto.commit.interval.ms", "1000");
+	 props.put("session.timeout.ms", "30000");
+	 props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+	 props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+	 consumer = new KafkaConsumer<>(props);
+         consumer.subscribe(Arrays.asList("mysqltest"));
+	 boolean doWrite = true;
+	 long begin0 = System.currentTimeMillis();
+	 long fileSize = 0;
+	 while (doWrite) {
+	     ConsumerRecords<String, String> records = consumer.poll(100L);
+	     for (ConsumerRecord<String, String> record : records){
+		 if (isDebug)
+		     System.out.printf("offset = %d, key = %s, value = %s", record.offset(), record.key(), record.value());
+		 
+		 buff.write(record.value().getBytes());
+		 fileSize += record.value().length();
+		 if (fileSize >= 1024L * 1024L * 1024L)
+		     doWrite = false;
+	     }
+	 } 
+	 long usedTime = System.currentTimeMillis() - begin0;
+	 System.out.println("write file total used : " + usedTime  + " filesize is : " + fileSize);
+       } 
+       catch(Exception e){
+       }
+       finally{
+         try{
+            consumer.close(); 
+            buff.close();
+            out.close();
+         }
+         catch(Exception e){
+
+         }
+       }
+   }
+	 
+}
+ 
+ 
+

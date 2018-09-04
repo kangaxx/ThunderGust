@@ -1,0 +1,3 @@
+Mainfest-Version: 1.0 
+Main-Class: kafkaCon
+Class-Path: /root/kafka/kafka_2.11-2.0.0/libs/kafka-clients-2.0.0.jar /root/kafka/kafka_2.11-2.0.0/libs/slf4j-api-1.7.25.jar $KAFKA_HOME/libs/slf4j-log4j12-1.7.25.jar $KAFKA_HOME/libs/log4j-1.2.17.jar
