@@ -19,50 +19,60 @@ public class common_java
 {
   public static String HDFS_PROCESS_PROPERTIES = "hdfs-start.properties";
 
-  public static void main(String [] args){
-    getDocument();
-  }
-
-
-
-  private static void getDocument(){  
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
+  //通过xml文件读取配置
+  public static String getAttributeByElem(String fileName, String elemName, String attrName){  
     try {
       //创建解析工厂
       DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
       //指定DocumentBuilder
       DocumentBuilder builder = dbfactory.newDocumentBuilder();
-      Document doc = builder.parse(new File("/mydata/text.xml"));
+      Document doc = builder.parse(new File(fileName));
       //得到Document的根
       Element root = doc.getDocumentElement();
-      System.out.println("根节点标记名：" + root.getTagName());
-      System.out.println("*****下面遍历XML元素*****");
       //获得一级子元素
-      
-      NodeList list = root.getElementsByTagName("学生");
-      //遍历一级子元素
-      for (int i=0; i < list.getLength() ; i++) {
-        //获得一级子元素
-        Element element = (Element)list.item(i);
-        System.out.println("get tag name : " + element.getTagName()); 
-        //获得性别属性
-        String sex = element.getAttribute("性别");
-        //获得元素的值
-        String name = element.getFirstChild().getNodeValue();
-        System.out.println("性别：" + sex + "  " +"名称：" + name);
-        int age = StrToInt_safe(element.getAttribute("年龄"));
-        System.out.println("年龄: " + age);
-      }
+      Element r = resFindElementByName(root, elemName);
+      if (null != r) 
+        return r.getAttribute(attrName);
+      else
+        return "";
     } catch (Exception e) {
       e.printStackTrace();
+      return "";
     }
 
   }  
   
-  private static int StrToInt_safe(String input){
+  private static Element resFindElementByName(Element elem, String name)
+  {
+    NodeList l = null; 
+    Element result = null;
+    try {
+      l = elem.getChildNodes();
+      if (elem.getTagName().equals(name))
+        return elem;
+      for (int i = 0; i < l.getLength(); i++){
+        if (l.item(i).getNodeType() == Node.ELEMENT_NODE) {
+          Element element = (Element)l.item(i);
+          result = resFindElementByName(element, name);
+          if (null != result){
+            return result;
+          }
+        }
+      }
+      return result;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return result;
+  }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  public static int StrToInt_safe(String input){
     return StrToInt_safe(input, -1);
   }
 
-  private static int StrToInt_safe(String input, int execReturn){
+  public static int StrToInt_safe(String input, int execReturn){
     try{
       return Integer.parseInt(input);
     }catch(Exception e){
