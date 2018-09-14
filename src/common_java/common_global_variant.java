@@ -8,5 +8,6 @@ public class common_global_variant{
   public static int GLOB_INT_MEMSHARE_FILE_STATUS_SLEEP = 0;
   public static int GLOB_INT_MEMSHARE_FILE_STATUS_WRITING = 1;
   public static int GLOB_INT_MEMSHARE_FILE_STATUS_READING = 2;
-  public static int GLOB_INT_MEMSHARE_FILE_STATUS_WAIT = 3;
+  public static int GLOB_INT_MEMSHARE_FILE_STATUS_AFTER_WRITE = 3;
+  public static int GLOB_INT_MEMSHARE_FILE_STATUS_WAIT = 9;
 }

@@ -40,9 +40,9 @@ public class sharemem_unit_reader{
         }
         if (buf == null) continue;
         //测试文件
-        byte mode = buf.get();
-        FileLock lock = common_sharemem.getFileLock(index);
-        if (mode == (byte)common_global_variant.GLOB_INT_MEMSHARE_FILE_STATUS_WAIT || lock != null){
+        byte mode = buf.get(0);
+        System.out.println("file : [" + index + "] mode is : " + mode); 
+        if (mode == (byte)common_global_variant.GLOB_INT_MEMSHARE_FILE_STATUS_AFTER_WRITE){
           buf.put(0,(byte)common_global_variant.GLOB_INT_MEMSHARE_FILE_STATUS_READING); //读文件前先设置标志位，以免读到一半被修改
           for(int k = 0 ; k < fileSize; ++k){
             if (k < 10 || k > fileSize - 6){
@@ -54,12 +54,6 @@ public class sharemem_unit_reader{
           System.out.println("file [" + prefix + index + "] end");
           index++;
           buf.put(0,(byte)common_global_variant.GLOB_INT_MEMSHARE_FILE_STATUS_WAIT);
-          try{
-            lock.release();
-          } catch (Exception e) {
-            //do nothing
-
-          }
         }
       }
     }
