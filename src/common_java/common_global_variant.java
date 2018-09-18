@@ -9,5 +9,11 @@ public class common_global_variant{
   public static int GLOB_INT_MEMSHARE_FILE_STATUS_WRITING = 1;
   public static int GLOB_INT_MEMSHARE_FILE_STATUS_READING = 2;
   public static int GLOB_INT_MEMSHARE_FILE_STATUS_AFTER_WRITE = 3;
+  public static int GLOB_INT_MEMSHARE_FILE_STATUS_WRITE_CONTINUE = 5;
   public static int GLOB_INT_MEMSHARE_FILE_STATUS_WAIT = 9;
+  public static int GLOB_INT_MEMSHARE_WRITE_STATUS_SUCCESS = 0;
+  public static int GLOB_INT_MEMSHARE_WRITE_STATUS_WAIT_READING =1; //暂时不能写，至少有一个内存块在等待读取，所以请等待读取进程
+  public static int GLOB_INT_MEMSHARE_WRITE_STATUS_WAIT_FLUSH = 2; //没有内存块等待读取，但至少有一个内存块可以强制读取并清理
+  public static int GLOB_INT_MEMSHARE_WRITE_STATUS_INPUT_ERROR = 3; //输入语句过长，不必重试了，直接抛弃并记录日志吧
+  public static int GLOB_INT_MEMSHARE_WRITE_STATUS_FATAL_ERROR = 4; //其他严重错误，记录日志,整个系统需要调试了？
 }

@@ -44,7 +44,7 @@ public class SendDataToKafka{
   {
     String longWord = "s";
     for (int i = 0 ; i < 5000; ++i){
-	longWord += "s";
+	    longWord += "s";
     }
     
     Runnable myThread1 = new SendDataThread(longWord);
@@ -95,10 +95,10 @@ public class SendDataToKafka{
     t2.start();
     t3.start();
     t4.start();
-    t5.start();
-    t6.start();
-    t7.start();
-    t8.start();
+//    t5.start();
+//    t6.start();
+//    t7.start();
+//    t8.start();
 //    t9.start();
 //    t0.start();
 //    ta.start();

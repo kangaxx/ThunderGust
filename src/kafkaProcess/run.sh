@@ -1,1 +1,1 @@
-java kafkaCon &
+java kafkaCon /mydata/sharemem.conf 

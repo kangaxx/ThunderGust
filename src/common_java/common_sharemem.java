@@ -43,6 +43,27 @@ public class common_sharemem{
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
   //共享内存相关功能函数
+  public static int blockCount(){
+    try{
+      return common_java.StrToInt_safe(common_java.getAttributeByElem(_instance.configFile, common_global_variant.GLOB_STRING_MEMSHARE_ELEMENT,
+                                       common_global_variant.GLOB_STRING_MEMSHARE_ATTRIBUTE_BLOCKCOUNT), 0);
+    }catch(Exception e){
+      e.printStackTrace();
+      return -1;
+    }
+
+  }
+
+  public static int fileSize(){
+    try{
+      return common_java.StrToInt_safe(common_java.getAttributeByElem(_instance.configFile, common_global_variant.GLOB_STRING_MEMSHARE_ELEMENT, 
+                                       common_global_variant.GLOB_STRING_MEMSHARE_FILE_CAPCITY), 0);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return -1;
+    }
+  }
+
   public static FileLock getFileLock(int index){
     try{
       int block_num = common_java.StrToInt_safe(common_java.getAttributeByElem(_instance.configFile, common_global_variant.GLOB_STRING_MEMSHARE_ELEMENT,

@@ -23,6 +23,7 @@ import java.io.*;
 public class kafkaCon {
   public static common_sharemem instance = null;
   private static MappedByteBuffer [] blocks = null;
+  private static int currentIndex = -1; //如果currentIndex > -1 则可以追加写入数据，否则需要判断共享内存标志位
   private static int blockCount = 0;
   private static int fileSize = 0;
   public static void main(String[] args)throws IOException{
@@ -47,45 +48,43 @@ public class kafkaCon {
     Collection<String> topics = Arrays.asList("mysqltest");
     consu.subscribe(topics);
     ConsumerRecords<String,String>consumerRecords = null;
+    String fileName = Long.toString(System.currentTimeMillis());
+    int wordSize = 0;
+    FileOutputStream outStr = new FileOutputStream(new File("/mydata/khFiles/" + fileName + ".end"));
+    System.out.println("fileName : " + fileName);
+    BufferedOutputStream Buff = new BufferedOutputStream(outStr);
     while(true){
       consumerRecords = consu.poll(100);
       for(ConsumerRecord<String, String> consumerRecord : consumerRecords){
         String value = consumerRecord.value();
-        //System.out.println("get word : " + value);        
+        wordSize += consumerRecord.value().length();
+        Buff.write(consumerRecord.value().getBytes());
         int result = writeToShmHead(value);
-        
         while ( result != common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_SUCCESS){
-          try{
-            if (result == common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_WAIT_READING)
-              Thread.sleep(1); //等待读
-            else if (result == common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_WAIT_FLUSH)//等待强制写
-              forceWriteOver();
-            else if (result == common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_FATAL_ERROR ||
+          if (result == common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_WAIT_READING)
+            Thread.sleep(1); //等待读
+          else if (result == common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_WAIT_FLUSH)//等待强制写
+            forceWriteOver();
+          else if (result == common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_FATAL_ERROR ||
                     result == common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_INPUT_ERROR){
-              System.out.println("Write to shm error , fatal error or input error");
-              break;
-            }
-            result = writeToShmHead(value);
-          } catch (Exception e){
-            e.printStackTrace();
+            System.out.println("Write to shm error , fatal error or input error");
+            break;
           }
+          result = writeToShmHead(value);
+        }
+        
+        if (wordSize > fileSize){
+          Buff.flush();
+          Buff.close();
+          File oldFile = new File("root/khFiles/" + fileName);
+          fileName = Long.toString(System.currentTimeMillis());
+          wordSize = 0;
+          outStr = null;
+          outStr = new FileOutputStream(new File("/mydata/khFiles/" + Long.toString(System.currentTimeMillis()) + ".end"));
+          Buff = null;
+          Buff = new BufferedOutputStream(outStr);
         }
       }
-    }
-  }
-
-  private static void forceWriteOver(){
-    try{
-      for (int i = 0; i < blockCount; ++i){
-        byte mode = blocks[i].get(0);
-        if (mode == common_global_variant.GLOB_INT_MEMSHARE_FILE_STATUS_WRITE_CONTINUE){
-          blocks[i].put(0,(byte)common_global_variant.GLOB_INT_MEMSHARE_FILE_STATUS_AFTER_WRITE);
-          Thread.sleep(1);
-          return;
-        }
-      }
-    } catch(Exception e){
-      e.printStackTrace();
     }
   }
 
@@ -95,9 +94,7 @@ public class kafkaCon {
       return false;
     }
     while( (blocks = instance.createWriteSharemem()) == null){System.out.print("Try to initial share memory ");}
-    blockCount = instance.blockCount();
-    fileSize = instance.fileSize();
-    System.out.println ("Create share memory  ... success! fileSize[" + fileSize + "]");
+    System.out.println ("Create share memory  ... success!");
     return true;
   }
 
@@ -142,8 +139,6 @@ public class kafkaCon {
             blocks[j].put(0,(byte)common_global_variant.GLOB_INT_MEMSHARE_FILE_STATUS_AFTER_WRITE);
           else 
             blocks[j].put(0,(byte)common_global_variant.GLOB_INT_MEMSHARE_FILE_STATUS_WRITE_CONTINUE); //buf未写到末尾，可以继续写
-          //System.out.println("write success : " + value + " in file : " + j);
- 
           return common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_SUCCESS;
         }
       }
@@ -163,8 +158,6 @@ public class kafkaCon {
     else if (results[common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_WAIT_FLUSH])
       return common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_WAIT_FLUSH;
     else if (results[common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_FATAL_ERROR])
-      return common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_FATAL_ERROR;
-    else
       return common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_FATAL_ERROR;
   }
 
