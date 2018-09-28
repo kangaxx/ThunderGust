@@ -81,8 +81,9 @@ public class shmMonitor{
         blocks[id].rewind();
         byte [] text = new byte[length];
         System.out.println("block[" + id + "], position:" + blocks[id].position() + ", limit:" + blocks[id].limit());
-        blocks[id].get(text, begin, length - 1);
-        System.out.println(text);
+        for (int i = begin; i < begin + length; i++)
+          System.out.print(blocks[id].get(i));
+        System.out.println("");
       }
     } catch(Exception e){
       e.printStackTrace();
