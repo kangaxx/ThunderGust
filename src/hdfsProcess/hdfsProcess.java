@@ -52,7 +52,8 @@ public class hdfsProcess{
 
   public static void writeHdfs(byte [] text){
     Configuration conf = new Configuration();
-    String fileName = "hdfs://localhost:9000/test/" + System.currentTimeMillis();
+    String hdfs_path = instance.getConfigAttributeString("hadoop_property","hadoop_path");
+    String fileName = hdfs_path + System.currentTimeMillis();
     try{
       FileSystem fs = FileSystem.get(URI.create(fileName), conf); 
       Path path = new Path(fileName);  
@@ -81,15 +82,17 @@ public class hdfsProcess{
   //读数据
   private static void  readShm(){
     try{
-      byte [] text = new byte[fileSize-1];
-      for(int j = 0; j < blockCount; ++j){
-        if (blocks[j] != null){
-          byte mode = blocks[j].get(0);
+      for(int i=0; i<blockCount; i++){
+        if (blocks[i] != null){
+          blocks[i].rewind(); 
+          byte mode = blocks[i].get(0);
           if (mode == (byte)common_global_variant.GLOB_INT_MEMSHARE_FILE_STATUS_AFTER_WRITE){
-            blocks[j].put(0,(byte)common_global_variant.GLOB_INT_MEMSHARE_FILE_STATUS_READING);
-            blocks[j].get(text , 0, fileSize - 1);
+            blocks[i].put(0,(byte)common_global_variant.GLOB_INT_MEMSHARE_FILE_STATUS_READING);
+            System.out.println("buffer limit is : " + blocks[i].limit() + " and filesize is : " + fileSize);
+            byte [] text = new byte[blocks[i].limit()];
+            blocks[i].get(text , 1, blocks[i].limit() - 1);
             writeHdfs(text);
-            blocks[j].put(0, (byte)common_global_variant.GLOB_INT_MEMSHARE_FILE_STATUS_WAIT);
+            blocks[i].put(0, (byte)common_global_variant.GLOB_INT_MEMSHARE_FILE_STATUS_WAIT);
           }
         }
       }
