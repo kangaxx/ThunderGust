@@ -1,3 +1,9 @@
+/**
+ * kafka process , copy kafka data to hadoop hdfs 
+ * because of two system has some conflict (in log class), I had to build these program.
+ * I will combine two system in other method later(gxx, 2018-10-11)
+ *
+ **/
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -33,31 +39,34 @@ public class kafkaCon {
     initialShm(); //初始化共享内存空间
     
     Properties props = new Properties();
-    props.put("bootstrap.servers", "172.17.0.59:9092");
-    props.put("group.id", "test-consumer-group");
-    props.put("enable.auto.commit", "true");
+    props.put("bootstrap.servers", instance.getConfigAttributeString("kafka_property","bootstrap.servers") );
+    props.put("group.id", instance.getConfigAttributeString("kafka_property","group.id"));
+    props.put("enable.auto.commit", instance.getConfigAttributeString("kafka_property","enable.auto.commit"));
     //props.put("enable.auto.commit", "false");
-    props.put("auto.commit.interval.ms", "1000");
-    props.put("session.timeout.ms", "30000");
-    props.put("key.deserializer",
-	    "org.apache.kafka.common.serialization.StringDeserializer");
-    props.put("value.deserializer",
-	    "org.apache.kafka.common.serialization.StringDeserializer");
+    props.put("auto.commit.interval.ms", instance.getConfigAttributeString("kafka_property","auto.commit.interval.ms"));
+    props.put("session.timeout.ms", instance.getConfigAttributeString("kafka_property","session.timeout.ms"));
+    props.put("key.deserializer",instance.getConfigAttributeString("kafka_property","key.deserializer"));
+    props.put("value.deserializer",instance.getConfigAttributeString("kafka_property","value.deserializer"));
     Consumer<String,String> consu = new KafkaConsumer<String,String>(props);
-    Collection<String> topics = Arrays.asList("mysqltest");
+    Collection<String> topics = Arrays.asList("MetisTest");
     consu.subscribe(topics);
     ConsumerRecords<String,String>consumerRecords = null;
+    common_java cj = new common_java();
+    common_java.debugProperties dp = cj.new debugProperties();
+    dp.setJumpNum(30);
+    
     while(true){
       consumerRecords = consu.poll(100);
       for(ConsumerRecord<String, String> consumerRecord : consumerRecords){
         String value = consumerRecord.value();
         //System.out.println("get word : " + value);        
         int result = writeToShmHead(value);
-        
+       common_java.debugPrintln("first print, after write to shmhead , result is : " + result, dp, value.length());
         while ( result != common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_SUCCESS){
           try{
-            if (result == common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_WAIT_READING)
-              Thread.sleep(1); //等待读
+            if (result == common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_WAIT_READING){
+              Thread.sleep(1); //等待读,这里的确需要等
+            }
             else if (result == common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_WAIT_FLUSH)//等待强制写
               forceWriteOver();
             else if (result == common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_FATAL_ERROR ||
@@ -80,7 +89,6 @@ public class kafkaCon {
         byte mode = blocks[i].get(0);
         if (mode == common_global_variant.GLOB_INT_MEMSHARE_FILE_STATUS_WRITE_CONTINUE){
           blocks[i].put(0,(byte)common_global_variant.GLOB_INT_MEMSHARE_FILE_STATUS_AFTER_WRITE);
-          Thread.sleep(1);
           return;
         }
       }
