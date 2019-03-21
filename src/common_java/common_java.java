@@ -79,5 +79,91 @@ public class common_java
       return execReturn;
     }
   }
+  
+  //为debug println专用的参数类
+  public class debugProperties{
+    private int printNum = 0;
+    private int jumpNum = 1; //算法上，用printNum 对jumpNum取余，这样可以实现每jumpNum次打印一次等loop功能
+    private int _int_cache[] = {0, 0, 0};//记录一些cache 值，方便打印与记录
 
+    public debugProperties(){
+      printNum = 0;
+      jumpNum = 1;
+    }
+
+    //记录cache，方便调试时的打印统计功能
+    public void setCache(int num){
+      setIntCache(num, 0);
+    }
+
+    public void setIntCache(int num, int idx){
+      _int_cache[idx] = num;
+    }
+
+    public void incCache(int num){
+      incIntCache(num, 0);
+    }
+
+    public void incIntCache(int num, int idx){
+      setIntCache(num + _int_cache[idx], idx);
+    }
+
+    public int getIntCache(int idx){
+      return _int_cache[idx];
+    }
+
+    public void printNumInc(){
+      printNum ++;
+    }
+    
+    //获取真实的打印次数,如果jumpNum > 1,真实打印次数会小于调用debugPrint的次数
+    public int getPrintNum_truth(){
+      return printNum / jumpNum;
+    }
+
+    public void setPrintNum(int num){
+      printNum = num;
+    }
+
+    public void setJumpNum(int num){
+      if (num > 0)
+        jumpNum = num;
+      else{
+        System.out.println("System debug warning ,jump num must > 0 ,otherwise , it will be set to 1");
+        jumpNum = 1; //maybe warning
+      }
+    }
+    
+    //针对printnum取余，为0时则表示打印，jumpNum设为1时默认每次打印
+    public boolean isPrint(){
+      if (printNum % jumpNum == 0)
+        return true;
+      else
+        return false;
+    }
+    
+    public void doPrint(String msg){
+      if (isPrint()){
+        System.out.println(msg);
+        printNum ++;
+      }
+    }
+
+    public void doPrintWithCount(String msg){
+      if (isPrint()){
+        System.out.println(msg + " ;Count cache[0]:" + getIntCache(0)); 
+      }
+    }
+  }
+
+  //调试代码用的println语句，为了大数据编程，特地增加跳跃显示（每n次只打印一次）功能参数
+  public static void debugPrintln(String msg, debugProperties printProp){
+    printProp.doPrint(msg);
+  }
+
+  //简单统计数据功能
+  public static void debugPrintln(String msg, debugProperties printProp, int count){
+    printProp.incCache(count);
+    printProp.doPrintWithCount(msg);    
+  }
 }

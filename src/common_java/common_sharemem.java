@@ -43,6 +43,20 @@ public class common_sharemem{
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
   //共享内存相关功能函数
+  public static String getConfigAttributeString(String nodeName,String attributeName){
+    try{
+      String result = common_java.getAttributeByElem(_instance.configFile, nodeName, attributeName); 
+      System.out.println(result);
+      return result;
+    }catch(Exception e){
+      e.printStackTrace();
+      return null;
+
+
+    }
+
+  }
+
   public static int blockCount(){
     try{
       return common_java.StrToInt_safe(common_java.getAttributeByElem(_instance.configFile, common_global_variant.GLOB_STRING_MEMSHARE_ELEMENT,
@@ -110,7 +124,7 @@ public class common_sharemem{
       
       
       //3. initial (if new cache file, if old file with data and lock,
-      //   should an do some complex data.
+      //   some complex data.
       String prefix = common_java.getAttributeByElem(_instance.configFile, common_global_variant.GLOB_STRING_MEMSHARE_ELEMENT, 
                                                       common_global_variant.GLOB_STRING_MEMSHARE_FILE_PREFIX_ATTRIBUTE);
 

@@ -60,7 +60,7 @@ public class shmMonitor{
         else if (command.equals("h") || command.equals("help")){
           showHelp();
         }
-        System.out.println("pls input monitor command, only read cacha status by (status-all;sa) , edit status by (edit-status; es) and exit by (q) ,cry");
+        System.out.println("pls input monitor command, only read cacha status by (status-all;sa) , edit status by (edit-status; es) and exit by (q) , press (help) for command list,cry");
         command = sc.nextLine();
         System.out.println(command + "...");
       }

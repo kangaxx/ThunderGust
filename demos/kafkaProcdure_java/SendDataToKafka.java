@@ -3,26 +3,34 @@ import java.util.Date;
 import java.text.SimpleDateFormat;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import java.util.Random;
+import common_java.common_java;
+
 
 class SendDataThread implements Runnable {
-  public static int sendNum = 30000000;
+  public static int sendNum = 500000;
+  public volatile static int wordSize = 0;
+  public static String[] device = {"Huawei","Apple","Mi"};
+  public static String[] city = {"Shanghai","Beijin","Guangzhou"};
+  public static String[] os = {"Android","iOs","other"};
+
   @Override
   public void run() {
     SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-    System.out.println(_sn + "begin at " +df.format(new Date()));
-    send("mysqltest", "", _sn,df.format(new Date()));
-    System.out.println(_sn+ "end at " + df.format(new Date()));
+    System.out.println("begin at " +df.format(new Date()));
+    send("MetisTest", "",df.format(new Date()), _thNum);
+    System.out.println("end at " + df.format(new Date()) + "total size : " + wordSize);
   }
 
-  public String _sn;
-  public SendDataThread(String sn)
+  public int _thNum;
+  public SendDataThread(int num)
   {
-     _sn = sn;
+     _thNum = num;
   }
 
-  public void send(String topic,String key,String data,String datetime){
+  public void send(String topic,String key,String datetime, int thNum){
     Properties props = new Properties();
-    props.put("bootstrap.servers", "172.17.0.59:9092");
+    props.put("bootstrap.servers", "101.201.234.219:9092");
     props.put("acks", "all");
     props.put("retries", 0);
     props.put("batch.size", 16384);
@@ -30,11 +38,22 @@ class SendDataThread implements Runnable {
     props.put("buffer.memory", 33554432);
     props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
     props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-
     KafkaProducer<String, String> producer = new KafkaProducer<String,String>(props);
-    for(int i=1;i<sendNum;i++){
-      producer.send(new ProducerRecord<String, String>(topic, ""+i, "[" + datetime + "] " + data + " msg no: " + i));
+    for(int i=0; i<sendNum; i++){
+      StringBuilder sb = new StringBuilder("");
+      for (int j  = 0 ; j < 1; ++j){
+        int idxDev = (int)(Math.random() * device.length); 
+        int idxCity =  (int)(Math.random() * city.length);
+        int idxOs = (int)(Math.random() * os.length);
+        sb.append( "{\"device\" : \"" + device[idxDev] + "\",\"city\" : \"" + city[idxCity]
+              + "\", \"os\" : \"" + os[idxOs]  + "\"}");
+      }
+      String data = sb.toString();
+   
+      wordSize += data.length();
+      producer.send(new ProducerRecord<String, String>(topic, ""+i, data));
     }
+    
     producer.close();
   }
 }
@@ -42,31 +61,26 @@ class SendDataThread implements Runnable {
 public class SendDataToKafka{
   public static void main(String []argc)
   {
-    String longWord = "s";
-    for (int i = 0 ; i < 5000; ++i){
-	    longWord += "s";
-    }
-    
-    Runnable myThread1 = new SendDataThread(longWord);
-    Runnable myThread2 = new SendDataThread(longWord);
-    Runnable myThread3 = new SendDataThread(longWord);
-    Runnable myThread4 = new SendDataThread(longWord);
-    Runnable myThread5 = new SendDataThread(longWord);
-    Runnable myThread6 = new SendDataThread(longWord);
-    Runnable myThread7 = new SendDataThread("thread 07");
-    Runnable myThread8 = new SendDataThread("thread 08");
-    Runnable myThread9 = new SendDataThread("thread 09");
-    Runnable myThread0 = new SendDataThread("thread 10");
-    Runnable myThreada = new SendDataThread("thread 0a");
-    Runnable myThreadb = new SendDataThread("thread 0b");
-    Runnable myThreadc = new SendDataThread("thread 0c");
-    Runnable myThreadd = new SendDataThread("thread 0d");
-    Runnable myThreade = new SendDataThread("thread 0e");
-    Runnable myThreadf = new SendDataThread("thread 0f");
-    Runnable myThreadg = new SendDataThread("thread 0g");
-    Runnable myThreadh = new SendDataThread("thread 0h");
-    Runnable myThreadi = new SendDataThread("thread 0i");
-    Runnable myThreadj = new SendDataThread("thread 0j");
+    Runnable myThread1 = new SendDataThread(1);
+    Runnable myThread2 = new SendDataThread(2);
+    Runnable myThread3 = new SendDataThread(3);
+    Runnable myThread4 = new SendDataThread(4);
+    Runnable myThread5 = new SendDataThread(5);
+    Runnable myThread6 = new SendDataThread(6);
+    Runnable myThread7 = new SendDataThread(7);
+    Runnable myThread8 = new SendDataThread(8);
+    Runnable myThread9 = new SendDataThread(9);
+    Runnable myThread0 = new SendDataThread(10);
+    Runnable myThreada = new SendDataThread(11);
+    Runnable myThreadb = new SendDataThread(12);
+    Runnable myThreadc = new SendDataThread(13);
+    Runnable myThreadd = new SendDataThread(14);
+    Runnable myThreade = new SendDataThread(15);
+    Runnable myThreadf = new SendDataThread(16);
+    Runnable myThreadg = new SendDataThread(17);
+    Runnable myThreadh = new SendDataThread(18);
+    Runnable myThreadi = new SendDataThread(19);
+    Runnable myThreadj = new SendDataThread(20);
  
     Thread t1 = new Thread(myThread1);
     Thread t2 = new Thread(myThread2);
@@ -92,9 +106,9 @@ public class SendDataToKafka{
 
 
     t1.start();
-    t2.start();
-    t3.start();
-    t4.start();
+//    t2.start();
+//    t3.start();
+//    t4.start();
 //    t5.start();
 //    t6.start();
 //    t7.start();
