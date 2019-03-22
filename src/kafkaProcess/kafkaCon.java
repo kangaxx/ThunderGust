@@ -61,7 +61,7 @@ public class kafkaCon {
         String value = consumerRecord.value();
         //System.out.println("get word : " + value);        
         int result = writeToShmHead(value);
-       common_java.debugPrintln("first print, after write to shmhead , result is : " + result, dp, value.length());
+        common_java.debugPrintln("first print, after write to shmhead , result is : " + result, dp, value.length());
         while ( result != common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_SUCCESS){
           try{
             if (result == common_global_variant.GLOB_INT_MEMSHARE_WRITE_STATUS_WAIT_READING){
